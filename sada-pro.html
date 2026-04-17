@@ -290,16 +290,7 @@
           </div>
         </div>
 
-        <!-- NEW: Rounding -->
-        <div class="option-area">
-          <span class="option-label">Pembulatan</span>
-          <div class="option-pills">
-            <div class="pill-item lavender"><input type="radio" name="rounding" id="r0" value="0" checked><label for="r0">Tidak</label></div>
-            <div class="pill-item lavender"><input type="radio" name="rounding" id="r100" value="100"><label for="r100">Rp 100</label></div>
-            <div class="pill-item lavender"><input type="radio" name="rounding" id="r500" value="500"><label for="r500">Rp 500</label></div>
-            <div class="pill-item lavender"><input type="radio" name="rounding" id="r1000" value="1000"><label for="r1000">Rp 1.000</label></div>
-          </div>
-        </div>
+
       </div>
 
       <!-- 2. Split Mode -->
@@ -485,7 +476,7 @@
       const parkir = parseFloat(document.getElementById('parkir').value) || 0;
       const taxRate = parseFloat(document.querySelector('input[name="taxRate"]:checked').value);
       const serviceRate = parseFloat(document.querySelector('input[name="serviceRate"]:checked').value);
-      const roundVal = parseInt(document.querySelector('input[name="rounding"]:checked').value);
+      const roundVal = 0;
 
       // Validation
       if (tm <= 0) {
@@ -571,7 +562,7 @@
       if (taxFee > 0) resultHTML += `<div class="summary-row"><span>Tax (${taxRate * 100}%)</span><span>+${fRp(taxFee)}</span></div>`;
       if (ongkir > 0) resultHTML += `<div class="summary-row"><span>Shipping</span><span>+${fRp(ongkir)}</span></div>`;
       if (parkir > 0) resultHTML += `<div class="summary-row"><span>Parking/Lainnya</span><span>+${fRp(parkir)}</span></div>`;
-      if (roundVal > 0) resultHTML += `<div class="summary-row"><span>Pembulatan</span><span>ke ${fRp(roundVal)}</span></div>`;
+
       resultHTML += `</div>`;
 
       resultHTML += `<div class="result-total"><span>TOTAL</span><span>${fRp(totalBayar)}</span></div>`;
