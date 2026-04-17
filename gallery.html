@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sada Gallery — The Unnecessary Collection</title>
+  <meta name="description" content="A whimsical photo gallery with animated blob frames">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ===== Variables ===== */
+    :root {
+      --font-display: 'Righteous', sans-serif;
+      --font-body: 'Outfit', sans-serif;
+      --background: #fffcf5;
+      --foreground: #1a1a2e;
+      --muted: #717182;
+      --sunshine: #FFD93D;
+      --coral: #FF6B9D;
+      --sky: #6BCF7F;
+      --mint: #4ECDC4;
+      --lavender: #C7B3FF;
+      --peach: #FFB084;
+    }
+
+    /* ===== Reset ===== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--background);
+      color: var(--foreground);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* ===== Background Noise ===== */
+    .bg-noise {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0; opacity: 0.03;
+    }
+
+    /* ===== Animations ===== */
+    @keyframes wobble1 {
+      0%, 100% { transform: rotate(-2deg) scale(1); }
+      25% { transform: rotate(1deg) scale(1.02); }
+      50% { transform: rotate(-1deg) scale(0.98); }
+      75% { transform: rotate(2deg) scale(1.01); }
+    }
+    @keyframes wobble2 {
+      0%, 100% { transform: rotate(1deg) translateY(0); }
+      33% { transform: rotate(-2deg) translateY(-8px); }
+      66% { transform: rotate(2deg) translateY(4px); }
+    }
+    @keyframes wobble3 {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      20% { transform: rotate(-3deg) scale(1.03); }
+      40% { transform: rotate(1deg) scale(0.97); }
+      60% { transform: rotate(-1deg) scale(1.02); }
+      80% { transform: rotate(2deg) scale(0.99); }
+    }
+    @keyframes float-up {
+      0%, 100% { transform: translateY(0) rotate(-1deg); }
+      50% { transform: translateY(-12px) rotate(1deg); }
+    }
+    @keyframes float-down {
+      0%, 100% { transform: translateY(0) rotate(1deg); }
+      50% { transform: translateY(8px) rotate(-1deg); }
+    }
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes blob-morph {
+      0%, 100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+      25% { border-radius: 58% 42% 55% 45% / 56% 60% 40% 44%; }
+      50% { border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%; }
+      75% { border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%; }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(255,107,157,0.2); }
+      50% { box-shadow: 0 0 40px rgba(255,107,157,0.4); }
+    }
+
+    /* ===== Header ===== */
+    .header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(255, 252, 245, 0.9);
+      backdrop-filter: blur(8px);
+      border-bottom: 4px solid black;
+    }
+    .header-inner {
+      max-width: 80rem; margin: 0 auto;
+      padding: 16px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 12px;
+      text-decoration: none; color: inherit;
+    }
+    .logo-icon {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--sunshine);
+      display: flex; align-items: center; justify-content: center;
+      transform: rotate(12deg); border: 3px solid black;
+      font-size: 1.5rem;
+      transition: all 0.3s ease;
+    }
+    .logo:hover .logo-icon { transform: rotate(0deg) scale(1.1); }
+    .logo-text { font-family: var(--font-display); font-size: 1.5rem; }
+    .btn-back {
+      padding: 10px 24px; background: var(--coral); color: white;
+      border-radius: 9999px; font-weight: 700; font-size: 0.875rem;
+      border: 3px solid black; cursor: pointer;
+      box-shadow: 3px 3px 0px 0px rgba(0,0,0,1);
+      transition: all 0.3s ease; text-decoration: none;
+    }
+    .btn-back:hover {
+      transform: scale(1.05) rotate(-2deg);
+      box-shadow: 5px 5px 0px 0px rgba(0,0,0,1);
+    }
+
+    /* ===== Hero ===== */
+    .gallery-hero {
+      text-align: center;
+      padding: 64px 24px 48px;
+      position: relative;
+    }
+    .gallery-hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .gallery-hero h1 .highlight {
+      position: relative; display: inline-block;
+    }
+    .gallery-hero h1 .highlight::after {
+      content: '';
+      position: absolute; bottom: -4px; left: -4px;
+      width: calc(100% + 8px); height: 16px;
+      background: var(--sunshine); opacity: 0.4;
+      border-radius: 4px; z-index: -1;
+      transform: rotate(-1deg);
+    }
+    .gallery-hero p {
+      font-size: 1.25rem; color: var(--muted);
+      max-width: 600px; margin: 0 auto;
+    }
+    .photo-count {
+      display: inline-block; margin-top: 16px;
+      padding: 8px 20px; background: var(--mint);
+      border-radius: 9999px; font-weight: 700;
+      font-size: 0.875rem; border: 3px solid black;
+      box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+    }
+
+    /* ===== Floating Decorations ===== */
+    .deco { position: absolute; pointer-events: none; opacity: 0.15; }
+    .deco-1 { top: 100px; left: 5%; width: 80px; height: 80px; background: var(--sunshine); border-radius: 50%; animation: float-up 6s ease-in-out infinite; }
+    .deco-2 { top: 200px; right: 8%; width: 60px; height: 60px; background: var(--coral); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; animation: wobble2 8s ease-in-out infinite; }
+    .deco-3 { top: 50%; left: 3%; width: 100px; height: 100px; background: var(--mint); border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; animation: wobble3 10s ease-in-out infinite; }
+    .deco-4 { top: 70%; right: 4%; width: 70px; height: 70px; background: var(--lavender); border-radius: 50%; animation: float-down 7s ease-in-out infinite; }
+
+    /* ===== Gallery Grid ===== */
+    .gallery {
+      max-width: 80rem; margin: 0 auto;
+      padding: 0 24px 96px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 48px;
+      position: relative; z-index: 10;
+    }
+
+    /* ===== Photo Frame ===== */
+    .photo-frame {
+      position: relative;
+      opacity: 0;
+      animation: fadeInUp 0.6s ease forwards;
+    }
+    .photo-frame:nth-child(odd) { animation-delay: 0.1s; }
+    .photo-frame:nth-child(even) { animation-delay: 0.2s; }
+
+    .photo-blob {
+      position: relative;
+      border: 4px solid black;
+      overflow: hidden;
+      cursor: pointer;
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
+      background: white;
+      padding: 8px;
+    }
+    .photo-blob:hover {
+      box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
+      z-index: 20;
+    }
+
+    /* Different blob shapes for each card */
+    .shape-1 { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+    .shape-2 { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    .shape-3 { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+    .shape-4 { border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%; }
+    .shape-5 { border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%; }
+    .shape-6 { border-radius: 70% 30% 50% 50% / 30% 70% 30% 70%; }
+
+    /* Different animations for each card */
+    .anim-1 { animation: wobble1 6s ease-in-out infinite, fadeInUp 0.6s ease forwards; }
+    .anim-2 { animation: wobble2 7s ease-in-out infinite, fadeInUp 0.6s ease forwards; }
+    .anim-3 { animation: wobble3 8s ease-in-out infinite, fadeInUp 0.6s ease forwards; }
+    .anim-4 { animation: float-up 5s ease-in-out infinite, fadeInUp 0.6s ease forwards; }
+    .anim-5 { animation: float-down 6s ease-in-out infinite, fadeInUp 0.6s ease forwards; }
+    .anim-6 { animation: blob-morph 10s ease-in-out infinite, fadeInUp 0.6s ease forwards; }
+
+    .photo-blob img {
+      width: 100%; height: 280px;
+      object-fit: cover;
+      border-radius: inherit;
+      display: block;
+    }
+
+    /* Color accents per frame */
+    .accent-yellow { border-color: #1a1a2e; background: #FFF8E1; }
+    .accent-pink { border-color: #1a1a2e; background: #FFF0F5; }
+    .accent-mint { border-color: #1a1a2e; background: #E0FFF4; }
+    .accent-lavender { border-color: #1a1a2e; background: #F3EEFF; }
+    .accent-peach { border-color: #1a1a2e; background: #FFF3E8; }
+    .accent-sky { border-color: #1a1a2e; background: #E8FFF0; }
+
+    /* Photo number badge */
+    .photo-badge {
+      position: absolute; top: -8px; left: -8px;
+      width: 40px; height: 40px;
+      border-radius: 50%; border: 3px solid black;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display);
+      font-size: 0.875rem; z-index: 5;
+      box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+    }
+
+    /* Hover star */
+    .hover-star {
+      position: absolute; top: -12px; right: -12px;
+      width: 32px; height: 32px;
+      opacity: 0; transition: all 0.3s ease;
+      z-index: 5;
+    }
+    .photo-frame:hover .hover-star {
+      opacity: 1; transform: rotate(20deg) scale(1.2);
+    }
+
+    /* ===== Lightbox ===== */
+    .lightbox {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 1000;
+      display: none; align-items: center; justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+    }
+    .lightbox.active { display: flex; }
+    .lightbox img {
+      max-width: 90vw; max-height: 90vh;
+      object-fit: contain;
+      border-radius: 16px;
+      border: 4px solid white;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .lightbox-close {
+      position: absolute; top: 24px; right: 24px;
+      width: 48px; height: 48px;
+      background: white; border: 3px solid black;
+      border-radius: 50%; font-size: 1.5rem;
+      cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      box-shadow: 3px 3px 0px 0px rgba(0,0,0,1);
+      transition: all 0.3s ease;
+    }
+    .lightbox-close:hover { transform: rotate(90deg) scale(1.1); }
+    .lightbox-nav {
+      position: absolute; top: 50%;
+      transform: translateY(-50%);
+      width: 56px; height: 56px;
+      background: white; border: 3px solid black;
+      border-radius: 50%; font-size: 1.5rem;
+      cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      box-shadow: 3px 3px 0px 0px rgba(0,0,0,1);
+      transition: all 0.3s ease;
+    }
+    .lightbox-nav:hover { transform: translateY(-50%) scale(1.1); }
+    .lightbox-prev { left: 24px; }
+    .lightbox-next { right: 24px; }
+
+    /* ===== Footer ===== */
+    .gallery-footer {
+      text-align: center; padding: 48px 24px;
+      border-top: 4px solid black;
+      background: white;
+    }
+    .gallery-footer p {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+    }
+    .gallery-footer .emoji { font-size: 2rem; display: block; margin-bottom: 8px; }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+      .gallery {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 32px;
+      }
+      .photo-blob img { height: 220px; }
+    }
+    @media (max-width: 480px) {
+      .gallery {
+        grid-template-columns: 1fr;
+        gap: 24px; padding: 0 16px 64px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background noise -->
+  <div class="bg-noise">
+    <svg width="100%" height="100%">
+      <filter id="noise">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4"></feTurbulence>
+        <feColorMatrix type="saturate" values="0"></feColorMatrix>
+      </filter>
+      <rect width="100%" height="100%" filter="url(#noise)"></rect>
+    </svg>
+  </div>
+
+  <!-- Floating decorations -->
+  <div class="deco deco-1"></div>
+  <div class="deco deco-2"></div>
+  <div class="deco deco-3"></div>
+  <div class="deco deco-4"></div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">🎪</div>
+        <span class="logo-text">Idea Playground</span>
+      </a>
+      <a href="index.html" class="btn-back">← Back to Home</a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="gallery-hero">
+    <h1>The <span class="highlight">Unnecessary</span><br>Collection 📸</h1>
+    <p>A curated gallery of moments that didn't need to exist — but we're glad they do.</p>
+    <div class="photo-count">📷 30 Photos</div>
+  </section>
+
+  <!-- Gallery Grid -->
+  <div class="gallery" id="gallery">
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <button class="lightbox-nav lightbox-prev" onclick="navLightbox(-1)">←</button>
+    <img id="lightbox-img" src="" alt="Full size photo">
+    <button class="lightbox-nav lightbox-next" onclick="navLightbox(1)">→</button>
+  </div>
+
+  <!-- Footer -->
+  <footer class="gallery-footer">
+    <p><span class="emoji">🎨</span>These photos are unnecessarily beautiful.</p>
+  </footer>
+
+  <script>
+    // Photo data from Google Drive
+    const photos = [
+      { id: "1pluMIYDhJWvR1vtM7H6L1TQ8iAwEkZc1", name: "1" },
+      { id: "1iE2qtGjnhJFSxJOiQw80sJ0aonY9Z4Aj", name: "2" },
+      { id: "1WebFRYKaKyUlEyIlZkN0jrbzuPI6PftZ", name: "3" },
+      { id: "1_NDmUws3oE03EZaKbVxRDV-EwNIK8Gjh", name: "4" },
+      { id: "1k0-779DsMyz_ROKezLLPqlm9J4_SB5Uo", name: "5" },
+      { id: "1YOjotecnX-j4Q-wKpyNQL9-bXpoQbimQ", name: "6" },
+      { id: "1khneKNNSbSXpUPoYTVH63_kPyOloBap3", name: "7" },
+      { id: "1tcfl7n4Pipx5oh9IIwLDI9EPjJqfY50R", name: "8" },
+      { id: "1zBdILIifgSmAWCi-JEAMx_kc4hxBSDJI", name: "9" },
+      { id: "1Bz45L_GBML_XsImUutHoE198qQNbYLv6", name: "10" },
+      { id: "1DZj19thfKSmgkYhani-K1Xii1ngtElvw", name: "11" },
+      { id: "1bJFtx9TMBw_UI-bDBL8konEGzZPe5I9z", name: "12" },
+      { id: "1Ncj0B6o4xh7VdJ4BzY6tEx9AAa2UGmlE", name: "13" },
+      { id: "1riz_8_6mW5mffFmG7IAqqp2MjNQcJzrZ", name: "14" },
+      { id: "1zXUJXlgy2RaCukEvFt4BtFgER_NEq7-A", name: "15" },
+      { id: "1LNS25cOp565WEoqSyz7uyuxYldzgTNVQ", name: "16" },
+      { id: "1-CgQ_eBgKWNWk_4WJpp9Z0fFPX3vmllY", name: "17" },
+      { id: "1_JQSDe4JXUkqnlz6LXfZLW1lf4NFSOHI", name: "18" },
+      { id: "10VvQ-suD34wICrxUt435epPzzi4LzoKu", name: "19" },
+      { id: "112iiCloigIZYQ4JeMCmvsUQZtDqzH2G1", name: "20" },
+      { id: "1zLEp0HZ4geP_ck-dFUvdvJ8s_x5QZnGU", name: "21" },
+      { id: "1vOKlLUnAjhzk9xO_HN3ytNtuP6VCfniC", name: "22" },
+      { id: "1Ka0YtPI1-TZuI-igOotrzt67wFooZTZX", name: "23" },
+      { id: "1r_M98D11TyaZZyClTlJ-7yvawdLT8L3w", name: "24" },
+      { id: "1HF_wJpB9K59xDLtTY6rZ336KLFCc7FcU", name: "25" },
+      { id: "1TdmtGTrth6FwZigEIz0b6JY6tdbDHKUQ", name: "26" },
+      { id: "1dRE7MURWEoln8-aeDhe2RhgAE15Ku3i8", name: "27" },
+      { id: "1nutSFKapv8ip04gxvx-8Y80b6O-4nSwk", name: "28" },
+      { id: "1zmke0shnwJaHPe-RWiSjM2KoW34ZMw5W", name: "29" },
+      { id: "1wzincuok2hBcKBYuv1hmOQr5nVOnm7u5", name: "30" }
+    ];
+
+    const shapes = ['shape-1','shape-2','shape-3','shape-4','shape-5','shape-6'];
+    const anims = ['anim-1','anim-2','anim-3','anim-4','anim-5','anim-6'];
+    const accents = ['accent-yellow','accent-pink','accent-mint','accent-lavender','accent-peach','accent-sky'];
+    const badgeColors = ['#FFD93D','#FF6B9D','#4ECDC4','#C7B3FF','#FFB084','#6BCF7F'];
+    const starColors = ['#FFD93D','#FF6B9D','#4ECDC4','#C7B3FF','#FFB084','#6BCF7F'];
+    const rotations = [-3, -2, -1, 0, 1, 2, 3];
+
+    let currentIndex = 0;
+
+    function getImageUrl(fileId, size) {
+      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${size || 800}`;
+    }
+
+    function buildGallery() {
+      const gallery = document.getElementById('gallery');
+      
+      photos.forEach((photo, i) => {
+        const shape = shapes[i % shapes.length];
+        const anim = anims[i % anims.length];
+        const accent = accents[i % accents.length];
+        const badgeColor = badgeColors[i % badgeColors.length];
+        const starColor = starColors[(i + 2) % starColors.length];
+        const rot = rotations[i % rotations.length];
+
+        const frame = document.createElement('div');
+        frame.className = `photo-frame`;
+        frame.style.animationDelay = `${i * 0.08}s`;
+
+        frame.innerHTML = `
+          <div class="photo-blob ${shape} ${anim} ${accent}" 
+               style="transform: rotate(${rot}deg);"
+               onclick="openLightbox(${i})">
+            <img src="${getImageUrl(photo.id)}" 
+                 alt="Photo ${photo.name}" 
+                 loading="lazy"
+                 onerror="this.src='https://via.placeholder.com/400x300/FFD93D/1a1a2e?text=Photo+${photo.name}'">
+          </div>
+          <div class="photo-badge" style="background: ${badgeColor};">${photo.name}</div>
+          <svg class="hover-star" viewBox="0 0 40 40">
+            <path d="M20 5 L23 15 L33 15 L25 22 L28 32 L20 25 L12 32 L15 22 L7 15 L17 15 Z" 
+                  fill="${starColor}" stroke="black" stroke-width="2"/>
+          </svg>
+        `;
+
+        gallery.appendChild(frame);
+      });
+    }
+
+    // Lightbox
+    function openLightbox(index) {
+      currentIndex = index;
+      const lb = document.getElementById('lightbox');
+      const img = document.getElementById('lightbox-img');
+      img.src = getImageUrl(photos[index].id, 1600);
+      lb.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function navLightbox(dir) {
+      event.stopPropagation();
+      currentIndex = (currentIndex + dir + photos.length) % photos.length;
+      document.getElementById('lightbox-img').src = getImageUrl(photos[currentIndex].id, 1600);
+    }
+
+    // Close lightbox with Escape or click background
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowRight') navLightbox(1);
+      if (e.key === 'ArrowLeft') navLightbox(-1);
+    });
+
+    document.getElementById('lightbox').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('lightbox')) closeLightbox();
+    });
+
+    // Build gallery on load
+    buildGallery();
+  </script>
+</body>
+</html>
