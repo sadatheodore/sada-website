@@ -298,16 +298,49 @@
     .lightbox-next { right: 24px; }
 
     /* ===== Footer ===== */
-    .gallery-footer {
-      text-align: center; padding: 48px 24px;
-      border-top: 4px solid black;
+    .site-footer {
       background: white;
+      border-top: 4px solid black;
+      padding: 48px 24px;
+      position: relative;
+      z-index: 10;
     }
-    .gallery-footer p {
-      font-family: var(--font-display);
-      font-size: 1.25rem;
+    .footer-wave { position: absolute; top: 0; left: 0; width: 100%; height: 8px; }
+    .footer-inner { max-width: 64rem; margin: 0 auto; }
+    .footer-top {
+      display: flex; flex-wrap: wrap;
+      justify-content: space-between; align-items: flex-start;
+      gap: 32px; margin-bottom: 32px;
     }
-    .gallery-footer .emoji { font-size: 2rem; display: block; margin-bottom: 8px; }
+    .footer-brand { max-width: 320px; }
+    .footer-brand-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .footer-logo {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--sunshine); display: flex; align-items: center; justify-content: center;
+      border: 3px solid black; font-size: 1.3rem; transform: rotate(12deg);
+    }
+    .footer-brand-name { font-family: var(--font-display); font-size: 1.5rem; }
+    .footer-brand p { font-size: 0.875rem; color: var(--muted); line-height: 1.6; }
+    .footer-links { display: flex; gap: 48px; }
+    .footer-links h4 { font-weight: 700; font-size: 0.875rem; margin-bottom: 12px; }
+    .footer-links ul { list-style: none; }
+    .footer-links li { margin-bottom: 8px; }
+    .footer-links a { font-size: 0.875rem; color: var(--muted); text-decoration: none; transition: color 0.3s; }
+    .footer-links a:hover { color: var(--coral); }
+    .footer-bottom {
+      padding-top: 24px; border-top: 2px dashed rgba(0,0,0,0.08);
+      display: flex; flex-wrap: wrap; justify-content: space-between;
+      align-items: center; gap: 16px;
+    }
+    .footer-bottom p { font-size: 0.875rem; color: var(--muted); }
+    .footer-emojis { display: flex; gap: 12px; }
+    .footer-emojis span { font-size: 1.5rem; cursor: pointer; transition: all 0.3s ease; }
+    .footer-emojis span:hover { transform: scale(1.25) rotate(12deg); }
+    @media (max-width: 640px) {
+      .footer-top { flex-direction: column; }
+      .footer-links { gap: 32px; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
 
     /* ===== Responsive ===== */
     @media (max-width: 768px) {
@@ -375,8 +408,45 @@
   </div>
 
   <!-- Footer -->
-  <footer class="gallery-footer">
-    <p><span class="emoji">🎨</span>These photos are unnecessarily beautiful.</p>
+  <footer class="site-footer">
+    <svg class="footer-wave" viewBox="0 0 1200 10" preserveAspectRatio="none">
+      <path d="M0 5 Q30 0, 60 5 T120 5 T180 5 T240 5 T300 5 T360 5 T420 5 T480 5 T540 5 T600 5 T660 5 T720 5 T780 5 T840 5 T900 5 T960 5 T1020 5 T1080 5 T1140 5 T1200 5" stroke="#FFD93D" stroke-width="4" fill="none"></path>
+    </svg>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-brand-header">
+            <div class="footer-logo">🎪</div>
+            <span class="footer-brand-name">Sada Journey</span>
+          </div>
+          <p>Konten yang tidak bermanfaat dan membuat waktu mager-an kamu tambah bermanfaat</p>
+        </div>
+        <div class="footer-links">
+          <div>
+            <h4>Tongkrongan</h4>
+            <ul>
+              <li><a href="#">Tunjuk Atas</a></li>
+              <li><a href="#">Terserah</a></li>
+              <li><a href="#">Persembunyian</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Intip</h4>
+            <ul>
+              <li><a href="#">Tiktok</a></li>
+              <li><a href="#">Instagram</a></li>
+              <li><a href="#">Email</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 · Di copy paste di Kereta sambil 😴 dan dengarin lagu Diatas masalah DIA lebih besar</p>
+        <div class="footer-emojis">
+          <span>😎</span><span>🎨</span><span>💡</span><span>🎯</span><span>🚀</span>
+        </div>
+      </div>
+    </div>
   </footer>
 
   <script>

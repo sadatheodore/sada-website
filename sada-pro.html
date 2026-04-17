@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sada Pro — Bill Splitter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-display: 'Righteous', sans-serif;
+      --font-body: 'Outfit', sans-serif;
+      --background: #fffcf5;
+      --foreground: #1a1a2e;
+      --muted: #717182;
+      --sunshine: #FFD93D;
+      --coral: #FF6B9D;
+      --sky: #6BCF7F;
+      --mint: #4ECDC4;
+      --lavender: #C7B3FF;
+      --peach: #FFB084;
+      --danger: #ef4444;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--background);
+      color: var(--foreground);
+      min-height: 100vh;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    /* ===== Background noise ===== */
+    .bg-noise {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0; opacity: 0.03;
+    }
+
+    /* ===== Floating decorations ===== */
+    .deco { position: fixed; pointer-events: none; z-index: 0; }
+    .deco-1 { top: 60px; left: -30px; width: 120px; height: 120px; background: var(--sunshine); opacity: 0.15; border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; animation: wobble1 8s ease-in-out infinite; }
+    .deco-2 { top: 200px; right: -20px; width: 90px; height: 90px; background: var(--coral); opacity: 0.12; border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; animation: wobble2 10s ease-in-out infinite; }
+    .deco-3 { bottom: 100px; left: 10px; width: 80px; height: 80px; background: var(--mint); opacity: 0.12; border-radius: 50%; animation: float-up 7s ease-in-out infinite; }
+    .deco-4 { bottom: 300px; right: -10px; width: 100px; height: 100px; background: var(--lavender); opacity: 0.1; border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; animation: wobble1 12s ease-in-out infinite; }
+
+    /* ===== Animations ===== */
+    @keyframes wobble1 { 0%, 100% { transform: rotate(-2deg) scale(1); } 25% { transform: rotate(1deg) scale(1.02); } 50% { transform: rotate(-1deg) scale(0.98); } 75% { transform: rotate(2deg) scale(1.01); } }
+    @keyframes wobble2 { 0%, 100% { transform: rotate(1deg) translateY(0); } 33% { transform: rotate(-2deg) translateY(-8px); } 66% { transform: rotate(2deg) translateY(4px); } }
+    @keyframes float-up { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+    @keyframes bounce-in { 0% { opacity: 0; transform: translateY(30px) scale(0.95); } 60% { transform: translateY(-5px) scale(1.02); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.15) rotate(5deg); } 100% { transform: scale(1); } }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+    /* ===== Header ===== */
+    .header { position: sticky; top: 0; z-index: 50; background: rgba(255, 252, 245, 0.92); backdrop-filter: blur(8px); border-bottom: 4px solid black; }
+    .header-inner { max-width: 520px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-icon { width: 42px; height: 42px; border-radius: 50%; background: var(--sunshine); display: flex; align-items: center; justify-content: center; border: 3px solid black; font-size: 1.3rem; transform: rotate(12deg); transition: all 0.3s ease; }
+    .logo-icon:hover { transform: rotate(0deg) scale(1.1); }
+    .logo-text { font-family: var(--font-display); font-size: 1.25rem; }
+    .header-badge { padding: 6px 14px; background: var(--coral); color: white; border-radius: 9999px; font-weight: 700; font-size: 0.7rem; border: 2px solid black; box-shadow: 2px 2px 0px 0px rgba(0,0,0,1); text-decoration: none; transition: all 0.3s ease; }
+    .header-badge:hover { transform: scale(1.05); box-shadow: 3px 3px 0 0 rgba(0,0,0,1); }
+
+    /* ===== Main Card ===== */
+    .main-wrapper { position: relative; z-index: 10; max-width: 520px; margin: 32px auto; padding: 0 16px 48px; animation: bounce-in 0.6s ease forwards; }
+    .card { background: white; border: 4px solid black; border-radius: 30% 70% 70% 30% / 6% 6% 8% 8%; padding: 36px 28px 48px; box-shadow: 6px 6px 0px 0px rgba(0,0,0,1); position: relative; overflow: hidden; }
+    .card-deco-circle { position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; background: var(--sunshine); opacity: 0.15; border-radius: 50%; }
+    .card-deco-blob { position: absolute; bottom: -30px; left: -30px; width: 100px; height: 100px; background: var(--mint); opacity: 0.1; border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+
+    /* ===== Title ===== */
+    .title-area { text-align: center; margin-bottom: 32px; position: relative; }
+    .title-emoji { font-size: 3rem; display: inline-block; animation: wobble1 4s ease-in-out infinite; margin-bottom: 8px; }
+    .title { font-family: var(--font-display); font-size: 2rem; line-height: 1.2; margin-bottom: 8px; }
+    .title .highlight { position: relative; display: inline-block; }
+    .title .highlight::after { content: ''; position: absolute; bottom: -2px; left: -4px; width: calc(100% + 8px); height: 12px; background: var(--sunshine); opacity: 0.4; border-radius: 4px; z-index: -1; transform: rotate(-1deg); }
+    .subtitle { font-size: 0.85rem; color: var(--muted); }
+
+    /* ===== Section Labels ===== */
+    .section-label { display: inline-block; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: white; padding: 6px 16px; border-radius: 9999px; border: 2px solid black; box-shadow: 2px 2px 0px 0px rgba(0,0,0,1); margin-bottom: 20px; }
+    .label-yellow { background: var(--sunshine); color: var(--foreground); }
+    .label-pink { background: var(--coral); }
+    .label-mint { background: var(--mint); color: var(--foreground); }
+    .label-lavender { background: var(--lavender); color: var(--foreground); }
+    .label-peach { background: var(--peach); color: var(--foreground); }
+
+    /* ===== Summary Box ===== */
+    .summary-box { background: var(--background); border: 3px solid black; border-radius: 20px; padding: 24px 20px; margin-bottom: 28px; box-shadow: 3px 3px 0px 0px rgba(0,0,0,0.15); }
+    .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .input-group label { display: block; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
+    .input-group input[type="number"], .input-group input[type="text"] { width: 100%; padding: 14px 16px; border: 3px solid black; border-radius: 14px; font-size: 0.95rem; font-family: var(--font-body); font-weight: 600; background: white; color: var(--foreground); transition: all 0.3s ease; box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.1); }
+    .input-group input:focus { outline: none; border-color: var(--coral); box-shadow: 3px 3px 0px 0px var(--coral); transform: translateY(-1px); }
+    .input-group input::placeholder { color: #ccc; font-weight: 400; }
+    .input-group input.error { border-color: var(--danger); animation: shake 0.3s ease; }
+
+    /* ===== Options (Tax, Service, etc) ===== */
+    .option-area { margin-top: 8px; margin-bottom: 16px; }
+    .option-label { display: block; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
+    .option-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill-item { position: relative; }
+    .pill-item input[type="radio"] { position: absolute; opacity: 0; }
+    .pill-item label { display: block; text-align: center; padding: 10px 16px; border: 3px solid black; border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 0.8rem; background: white; transition: all 0.3s ease; box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.1); user-select: none; }
+    .pill-item label:hover { transform: translateY(-2px); box-shadow: 3px 3px 0px 0px rgba(0,0,0,0.2); }
+    .pill-item input:checked + label { background: var(--sunshine); color: var(--foreground); box-shadow: 3px 3px 0px 0px rgba(0,0,0,1); transform: rotate(-2deg) scale(1.05); }
+    .pill-item.pink input:checked + label { background: var(--coral); color: white; }
+    .pill-item.mint input:checked + label { background: var(--mint); }
+    .pill-item.lavender input:checked + label { background: var(--lavender); }
+
+    /* ===== Split Mode Toggle ===== */
+    .split-mode { display: flex; gap: 8px; margin-bottom: 20px; }
+    .split-mode-btn { flex: 1; padding: 14px; border: 3px solid black; border-radius: 14px; font-weight: 800; font-size: 0.8rem; font-family: var(--font-body); cursor: pointer; transition: all 0.3s ease; box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.1); background: white; text-transform: uppercase; letter-spacing: 1px; }
+    .split-mode-btn.active { background: var(--mint); box-shadow: 3px 3px 0px 0px rgba(0,0,0,1); transform: rotate(-1deg); }
+    .split-mode-btn:hover:not(.active) { transform: translateY(-2px); }
+
+    /* ===== Person Entries ===== */
+    .person-entry { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; position: relative; animation: slideUp 0.3s ease forwards; }
+    .person-entry.equal-mode { grid-template-columns: 1fr; }
+    .person-entry input { width: 100%; padding: 14px 16px; border: 3px solid black; border-radius: 14px; font-size: 0.95rem; font-family: var(--font-body); font-weight: 600; background: white; color: var(--foreground); transition: all 0.3s ease; box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.1); }
+    .person-entry input:focus { outline: none; border-color: var(--mint); box-shadow: 3px 3px 0px 0px var(--mint); }
+    .person-entry input::placeholder { color: #ccc; font-weight: 400; }
+    .btn-remove { position: absolute; right: -28px; top: 50%; transform: translateY(-50%); background: var(--coral); border: 2px solid black; color: white; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 2px 2px 0px 0px rgba(0,0,0,1); transition: all 0.2s ease; }
+    .btn-remove:hover { transform: translateY(-50%) scale(1.2) rotate(10deg); }
+
+    /* ===== Equal Split Counter ===== */
+    .equal-counter { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 20px; }
+    .counter-btn { width: 48px; height: 48px; border: 3px solid black; border-radius: 50%; background: white; font-size: 1.5rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 3px 3px 0 0 rgba(0,0,0,1); transition: all 0.2s; font-family: var(--font-body); }
+    .counter-btn:hover { transform: scale(1.1); }
+    .counter-btn:active { transform: translateX(2px) translateY(2px); box-shadow: 1px 1px 0 0 rgba(0,0,0,1); }
+    .counter-value { font-family: var(--font-display); font-size: 2.5rem; min-width: 60px; text-align: center; }
+    .counter-label { text-align: center; font-size: 0.75rem; color: var(--muted); font-weight: 700; text-transform: uppercase; margin-bottom: 16px; letter-spacing: 1px; }
+
+    /* ===== Buttons ===== */
+    .btn-add { width: 100%; padding: 14px; background: white; color: var(--foreground); border: 3px dashed var(--mint); border-radius: 14px; cursor: pointer; font-weight: 800; font-size: 0.85rem; font-family: var(--font-body); margin-bottom: 28px; transition: all 0.3s ease; }
+    .btn-add:hover { background: var(--mint); border-style: solid; border-color: black; box-shadow: 3px 3px 0px 0px rgba(0,0,0,1); transform: translateY(-2px); }
+    .action-group { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; }
+    .btn-calc { padding: 18px; background: var(--coral); color: white; border: 3px solid black; border-radius: 14px; font-weight: 800; font-size: 0.95rem; font-family: var(--font-body); cursor: pointer; box-shadow: 4px 4px 0px 0px rgba(0,0,0,1); transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; }
+    .btn-calc:hover { transform: scale(1.03) rotate(-1deg); box-shadow: 6px 6px 0px 0px rgba(0,0,0,1); }
+    .btn-calc:active { transform: translateX(2px) translateY(2px); box-shadow: 2px 2px 0px 0px rgba(0,0,0,1); }
+    .btn-reset { padding: 18px; background: white; color: var(--foreground); border: 3px solid black; border-radius: 14px; font-weight: 800; font-size: 0.85rem; font-family: var(--font-body); cursor: pointer; box-shadow: 3px 3px 0px 0px rgba(0,0,0,1); transition: all 0.3s ease; }
+    .btn-reset:hover { background: #FFF0F0; transform: translateY(-2px); }
+
+    .btn-share-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .btn-share { width: 100%; padding: 16px; border: 3px solid black; border-radius: 14px; font-weight: 800; font-size: 0.85rem; font-family: var(--font-body); cursor: pointer; display: none; box-shadow: 4px 4px 0px 0px rgba(0,0,0,1); transition: all 0.3s ease; }
+    .btn-share:hover { transform: scale(1.03) rotate(1deg); box-shadow: 6px 6px 0px 0px rgba(0,0,0,1); }
+    .btn-copy { background: var(--sky); color: var(--foreground); }
+    .btn-wa { background: #25D366; color: white; }
+
+    /* ===== Error ===== */
+    .error-msg { background: #FFF0F0; border: 2px solid var(--danger); border-radius: 12px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.85rem; font-weight: 600; color: var(--danger); display: none; animation: slideUp 0.3s ease; }
+
+    /* ===== Result ===== */
+    #result { margin-top: 32px; border: 3px solid black; border-radius: 20px; background: var(--foreground); padding: 24px 20px; display: none; animation: slideUp 0.5s ease-out; box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.3); }
+    .result-header { text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .result-header h3 { font-family: var(--font-display); color: var(--sunshine); font-size: 1.1rem; }
+    .result-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.9rem; color: rgba(255,255,255,0.8); }
+    .result-row:last-of-type { border-bottom: none; }
+    .result-row .amount { font-weight: 800; color: var(--sunshine); }
+    .result-row .person-icon { display: inline-block; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-size: 0.75rem; font-weight: 800; margin-right: 10px; border: 2px solid; }
+    .result-detail { font-size: 0.7rem; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .result-summary { margin-top: 12px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; }
+    .summary-row { display: flex; justify-content: space-between; font-size: 0.8rem; color: rgba(255,255,255,0.5); padding: 4px 0; }
+    .result-total { margin-top: 16px; padding-top: 16px; border-top: 2px solid var(--sunshine); display: flex; justify-content: space-between; font-weight: 800; font-size: 1.15rem; color: var(--sunshine); font-family: var(--font-display); }
+
+    /* ===== Watermark ===== */
+    .watermark { text-align: center; margin-top: 24px; font-family: var(--font-display); font-size: 0.75rem; color: var(--muted); opacity: 0.5; }
+
+    /* ===== Toast ===== */
+    #toast { visibility: hidden; min-width: 200px; background: var(--sunshine); color: var(--foreground); text-align: center; border-radius: 9999px; padding: 14px 28px; position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%) translateY(20px); font-weight: 800; font-family: var(--font-body); z-index: 999; border: 3px solid black; box-shadow: 4px 4px 0px 0px rgba(0,0,0,1); transition: all 0.3s ease; }
+    #toast.show { visibility: visible; transform: translateX(-50%) translateY(0); animation: pop 0.4s ease; }
+
+    /* ===== Footer ===== */
+    .site-footer { background: white; border-top: 4px solid black; padding: 48px 24px; position: relative; z-index: 10; }
+    .footer-wave { position: absolute; top: 0; left: 0; width: 100%; height: 8px; }
+    .footer-inner { max-width: 64rem; margin: 0 auto; }
+    .footer-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 32px; margin-bottom: 32px; }
+    .footer-brand { max-width: 320px; }
+    .footer-brand-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .footer-logo { width: 48px; height: 48px; border-radius: 50%; background: var(--sunshine); display: flex; align-items: center; justify-content: center; border: 3px solid black; font-size: 1.3rem; transform: rotate(12deg); }
+    .footer-brand-name { font-family: var(--font-display); font-size: 1.5rem; }
+    .footer-brand p { font-size: 0.875rem; color: var(--muted); line-height: 1.6; }
+    .footer-links { display: flex; gap: 48px; }
+    .footer-links h4 { font-weight: 700; font-size: 0.875rem; margin-bottom: 12px; }
+    .footer-links ul { list-style: none; }
+    .footer-links li { margin-bottom: 8px; }
+    .footer-links a { font-size: 0.875rem; color: var(--muted); text-decoration: none; transition: color 0.3s; }
+    .footer-links a:hover { color: var(--coral); }
+    .footer-bottom { padding-top: 24px; border-top: 2px dashed rgba(0,0,0,0.08); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
+    .footer-bottom p { font-size: 0.875rem; color: var(--muted); }
+    .footer-emojis { display: flex; gap: 12px; }
+    .footer-emojis span { font-size: 1.5rem; cursor: pointer; transition: all 0.3s ease; }
+    .footer-emojis span:hover { transform: scale(1.25) rotate(12deg); }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 640px) {
+      .footer-top { flex-direction: column; }
+      .footer-links { gap: 32px; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+    @media (max-width: 520px) {
+      .main-wrapper { padding: 0 12px 32px; margin-top: 20px; }
+      .card { padding: 28px 20px 40px; border-radius: 24px; }
+      .btn-remove { right: -8px; top: -8px; transform: none; }
+      .btn-remove:hover { transform: scale(1.2) rotate(10deg); }
+      .btn-share-group { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-noise"><svg width="100%" height="100%"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#noise)"></rect></svg></div>
+
+  <div class="deco deco-1"></div>
+  <div class="deco deco-2"></div>
+  <div class="deco deco-3"></div>
+  <div class="deco deco-4"></div>
+
+  <div id="toast">Data Cleared! 🧹</div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">🧮</div>
+        <span class="logo-text">Sada Pro</span>
+      </div>
+      <a href="index.html" class="header-badge">← Back to Home</a>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <div class="main-wrapper">
+    <div class="card">
+      <div class="card-deco-circle"></div>
+      <div class="card-deco-blob"></div>
+
+      <!-- Title -->
+      <div class="title-area">
+        <div class="title-emoji">🧾</div>
+        <h2 class="title">Split the <span class="highlight">Bill</span></h2>
+        <p class="subtitle">No more awkward calculator moments ✨</p>
+      </div>
+
+      <!-- Error Message -->
+      <div class="error-msg" id="errorMsg"></div>
+
+      <!-- 1. Billing Details -->
+      <span class="section-label label-yellow">💰 Billing Details</span>
+      <div class="summary-box">
+        <div class="input-grid">
+          <div class="input-group">
+            <label>Subtotal</label>
+            <input type="number" id="totalMenu" placeholder="0" oninput="formatPreview(this)">
+          </div>
+          <div class="input-group">
+            <label>Discount</label>
+            <input type="number" id="diskon" placeholder="0">
+          </div>
+        </div>
+        <div class="input-grid">
+          <div class="input-group">
+            <label>Shipping / Ongkir</label>
+            <input type="number" id="ongkir" placeholder="0">
+          </div>
+          <div class="input-group">
+            <label>Parking / Lainnya</label>
+            <input type="number" id="parkir" placeholder="0">
+          </div>
+        </div>
+
+        <!-- Tax Rate -->
+        <div class="option-area">
+          <span class="option-label">Tax Rate (Pajak)</span>
+          <div class="option-pills">
+            <div class="pill-item"><input type="radio" name="taxRate" id="t0" value="0" checked><label for="t0">0%</label></div>
+            <div class="pill-item"><input type="radio" name="taxRate" id="t10" value="0.10"><label for="t10">10%</label></div>
+            <div class="pill-item"><input type="radio" name="taxRate" id="t11" value="0.11"><label for="t11">11%</label></div>
+            <div class="pill-item"><input type="radio" name="taxRate" id="t12" value="0.12"><label for="t12">12%</label></div>
+          </div>
+        </div>
+
+        <!-- NEW: Service Charge -->
+        <div class="option-area">
+          <span class="option-label">Service Charge</span>
+          <div class="option-pills">
+            <div class="pill-item pink"><input type="radio" name="serviceRate" id="s0" value="0" checked><label for="s0">0%</label></div>
+            <div class="pill-item pink"><input type="radio" name="serviceRate" id="s5" value="0.05"><label for="s5">5%</label></div>
+            <div class="pill-item pink"><input type="radio" name="serviceRate" id="s7" value="0.07"><label for="s7">7%</label></div>
+            <div class="pill-item pink"><input type="radio" name="serviceRate" id="s10" value="0.10"><label for="s10">10%</label></div>
+          </div>
+        </div>
+
+        <!-- NEW: Rounding -->
+        <div class="option-area">
+          <span class="option-label">Pembulatan</span>
+          <div class="option-pills">
+            <div class="pill-item lavender"><input type="radio" name="rounding" id="r0" value="0" checked><label for="r0">Tidak</label></div>
+            <div class="pill-item lavender"><input type="radio" name="rounding" id="r100" value="100"><label for="r100">Rp 100</label></div>
+            <div class="pill-item lavender"><input type="radio" name="rounding" id="r500" value="500"><label for="r500">Rp 500</label></div>
+            <div class="pill-item lavender"><input type="radio" name="rounding" id="r1000" value="1000"><label for="r1000">Rp 1.000</label></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Split Mode -->
+      <span class="section-label label-mint">👥 Split List</span>
+
+      <!-- NEW: Split Mode Toggle -->
+      <div class="split-mode">
+        <button type="button" class="split-mode-btn active" id="btnProportional" onclick="setSplitMode('proportional')">📊 Proporsional</button>
+        <button type="button" class="split-mode-btn" id="btnEqual" onclick="setSplitMode('equal')">➗ Bagi Rata</button>
+      </div>
+
+      <!-- Proportional Mode -->
+      <div id="proportionalMode">
+        <div id="personContainer">
+          <div class="person-entry">
+            <input type="text" placeholder="Nama" class="p-name">
+            <input type="number" placeholder="Harga porsi" class="p-price">
+          </div>
+        </div>
+        <button type="button" class="btn-add" onclick="addPerson()">+ Tambah Orang 🙋</button>
+      </div>
+
+      <!-- Equal Mode -->
+      <div id="equalMode" style="display:none;">
+        <p class="counter-label">Jumlah Orang</p>
+        <div class="equal-counter">
+          <button type="button" class="counter-btn" onclick="adjustCount(-1)">−</button>
+          <span class="counter-value" id="equalCount">2</span>
+          <button type="button" class="counter-btn" onclick="adjustCount(1)">+</button>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="action-group">
+        <button type="button" class="btn-reset" onclick="resetForm()">🗑️ Clear</button>
+        <button type="button" class="btn-calc" onclick="hitung()">Calculate 🎯</button>
+      </div>
+
+      <!-- Share Buttons -->
+      <div class="btn-share-group">
+        <button type="button" class="btn-share btn-copy" id="btnCopy" onclick="copyText()">📋 Copy Text</button>
+        <button type="button" class="btn-share btn-wa" id="btnWa" onclick="sendWhatsApp()">💬 WhatsApp</button>
+      </div>
+
+      <!-- Result -->
+      <div id="result">
+        <div class="result-header"><h3>📊 Bill Breakdown</h3></div>
+        <div id="resultContent"></div>
+      </div>
+
+      <div class="watermark">Aplikasi ini milik Omah Massage Group</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <svg class="footer-wave" viewBox="0 0 1200 10" preserveAspectRatio="none">
+      <path d="M0 5 Q30 0, 60 5 T120 5 T180 5 T240 5 T300 5 T360 5 T420 5 T480 5 T540 5 T600 5 T660 5 T720 5 T780 5 T840 5 T900 5 T960 5 T1020 5 T1080 5 T1140 5 T1200 5" stroke="#FFD93D" stroke-width="4" fill="none"></path>
+    </svg>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-brand-header">
+            <div class="footer-logo">🎪</div>
+            <span class="footer-brand-name">Sada Journey</span>
+          </div>
+          <p>Konten yang tidak bermanfaat dan membuat waktu mager-an kamu tambah bermanfaat</p>
+        </div>
+        <div class="footer-links">
+          <div>
+            <h4>Tongkrongan</h4>
+            <ul>
+              <li><a href="#">Tunjuk Atas</a></li>
+              <li><a href="#">Terserah</a></li>
+              <li><a href="#">Persembunyian</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Intip</h4>
+            <ul>
+              <li><a href="#">Tiktok</a></li>
+              <li><a href="#">Instagram</a></li>
+              <li><a href="#">Email</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 · Di copy paste di Kereta sambil 😴 dan dengarin lagu Diatas masalah DIA lebih besar</p>
+        <div class="footer-emojis">
+          <span>😎</span><span>🎨</span><span>💡</span><span>🎯</span><span>🚀</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    let finalWhatsAppText = "";
+    let splitMode = "proportional";
+    let equalCount = 2;
+    const badgeColors = ['#FFD93D','#FF6B9D','#4ECDC4','#C7B3FF','#FFB084','#6BCF7F'];
+
+    // Format number to Rupiah
+    function fRp(n) {
+      return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+    }
+
+    // Round up to nearest value
+    function roundUp(n, r) {
+      if (r <= 0) return Math.round(n);
+      return Math.ceil(n / r) * r;
+    }
+
+    // Show error
+    function showError(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = '⚠️ ' + msg;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 4000);
+    }
+
+    // Split mode toggle
+    function setSplitMode(mode) {
+      splitMode = mode;
+      document.getElementById('btnProportional').classList.toggle('active', mode === 'proportional');
+      document.getElementById('btnEqual').classList.toggle('active', mode === 'equal');
+      document.getElementById('proportionalMode').style.display = mode === 'proportional' ? 'block' : 'none';
+      document.getElementById('equalMode').style.display = mode === 'equal' ? 'block' : 'none';
+    }
+
+    // Equal count
+    function adjustCount(delta) {
+      equalCount = Math.max(2, Math.min(30, equalCount + delta));
+      document.getElementById('equalCount').textContent = equalCount;
+    }
+
+    // Add person
+    function addPerson() {
+      const container = document.getElementById('personContainer');
+      const div = document.createElement('div');
+      div.className = 'person-entry';
+      div.innerHTML = `
+        <input type="text" placeholder="Nama" class="p-name">
+        <input type="number" placeholder="Harga porsi" class="p-price">
+        <button type="button" class="btn-remove" onclick="this.parentElement.remove()">×</button>
+      `;
+      container.appendChild(div);
+    }
+
+    // Reset
+    function resetForm() {
+      document.querySelectorAll('input[type="number"], input[type="text"]').forEach(el => el.value = "");
+      document.getElementById('t0').checked = true;
+      document.getElementById('s0').checked = true;
+      document.getElementById('r0').checked = true;
+      document.getElementById('personContainer').innerHTML = `
+        <div class="person-entry">
+          <input type="text" placeholder="Nama" class="p-name">
+          <input type="number" placeholder="Harga porsi" class="p-price">
+        </div>`;
+      document.getElementById('result').style.display = 'none';
+      document.getElementById('btnCopy').style.display = 'none';
+      document.getElementById('btnWa').style.display = 'none';
+      document.getElementById('errorMsg').style.display = 'none';
+      equalCount = 2;
+      document.getElementById('equalCount').textContent = 2;
+      setSplitMode('proportional');
+      showToast("Data Cleared! 🧹");
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2000);
+    }
+
+    // ===== MAIN CALCULATE =====
+    function hitung() {
+      const tm = parseFloat(document.getElementById('totalMenu').value) || 0;
+      const disc = parseFloat(document.getElementById('diskon').value) || 0;
+      const ongkir = parseFloat(document.getElementById('ongkir').value) || 0;
+      const parkir = parseFloat(document.getElementById('parkir').value) || 0;
+      const taxRate = parseFloat(document.querySelector('input[name="taxRate"]:checked').value);
+      const serviceRate = parseFloat(document.querySelector('input[name="serviceRate"]:checked').value);
+      const roundVal = parseInt(document.querySelector('input[name="rounding"]:checked').value);
+
+      // Validation
+      if (tm <= 0) {
+        showError("Subtotal harus diisi!");
+        document.getElementById('totalMenu').classList.add('error');
+        setTimeout(() => document.getElementById('totalMenu').classList.remove('error'), 1000);
+        return;
+      }
+
+      const afterDisc = tm - disc;
+      const serviceFee = Math.round(afterDisc * serviceRate);
+      const taxableAmount = afterDisc + serviceFee;
+      const taxFee = Math.round(taxableAmount * taxRate);
+      const grandTotal = taxableAmount + taxFee + ongkir + parkir;
+
+      let dataPemesan = [];
+
+      if (splitMode === 'equal') {
+        // Equal split
+        const perPerson = grandTotal / equalCount;
+        for (let i = 0; i < equalCount; i++) {
+          dataPemesan.push({ name: `Person ${i + 1}`, price: perPerson, bayar: roundUp(perPerson, roundVal) });
+        }
+      } else {
+        // Proportional split
+        const names = document.getElementsByClassName('p-name');
+        const prices = document.getElementsByClassName('p-price');
+        let totalPorsi = 0;
+
+        for (let i = 0; i < names.length; i++) {
+          let p = parseFloat(prices[i].value) || 0;
+          if (p > 0) {
+            totalPorsi += p;
+            dataPemesan.push({ name: names[i].value || `User ${i + 1}`, price: p });
+          }
+        }
+
+        if (totalPorsi === 0) {
+          showError("Minimal 1 orang dengan harga porsi > 0!");
+          return;
+        }
+
+        // Calculate proportional
+        let runningTotal = 0;
+        dataPemesan.forEach((person, i) => {
+          if (i === dataPemesan.length - 1) {
+            person.bayar = roundUp(grandTotal - runningTotal, roundVal);
+          } else {
+            person.bayar = roundUp((person.price / totalPorsi) * grandTotal, roundVal);
+          }
+          runningTotal += person.bayar;
+        });
+      }
+
+      // Build result
+      let resultHTML = "";
+      finalWhatsAppText = `*🧾 SADA PRO - BILL SUMMARY*\n----------------------------\n`;
+
+      dataPemesan.forEach((person, i) => {
+        const color = badgeColors[i % badgeColors.length];
+        const detail = splitMode === 'equal'
+          ? `Bagi rata ${equalCount} orang`
+          : `Porsi: ${fRp(person.price)}`;
+
+        resultHTML += `
+          <div class="result-row">
+            <div>
+              <span class="person-icon" style="background:${color}20; color:${color}; border-color:${color};">${i + 1}</span>
+              ${person.name}
+              <div class="result-detail">${detail}</div>
+            </div>
+            <span class="amount">${fRp(person.bayar)}</span>
+          </div>`;
+        finalWhatsAppText += `👤 *${person.name}*: ${fRp(person.bayar)}\n`;
+      });
+
+      // Summary
+      const totalBayar = dataPemesan.reduce((s, p) => s + p.bayar, 0);
+      resultHTML += `<div class="result-summary">`;
+      resultHTML += `<div class="summary-row"><span>Subtotal</span><span>${fRp(tm)}</span></div>`;
+      if (disc > 0) resultHTML += `<div class="summary-row"><span>Discount</span><span>-${fRp(disc)}</span></div>`;
+      if (serviceFee > 0) resultHTML += `<div class="summary-row"><span>Service (${serviceRate * 100}%)</span><span>+${fRp(serviceFee)}</span></div>`;
+      if (taxFee > 0) resultHTML += `<div class="summary-row"><span>Tax (${taxRate * 100}%)</span><span>+${fRp(taxFee)}</span></div>`;
+      if (ongkir > 0) resultHTML += `<div class="summary-row"><span>Shipping</span><span>+${fRp(ongkir)}</span></div>`;
+      if (parkir > 0) resultHTML += `<div class="summary-row"><span>Parking/Lainnya</span><span>+${fRp(parkir)}</span></div>`;
+      if (roundVal > 0) resultHTML += `<div class="summary-row"><span>Pembulatan</span><span>ke ${fRp(roundVal)}</span></div>`;
+      resultHTML += `</div>`;
+
+      resultHTML += `<div class="result-total"><span>TOTAL</span><span>${fRp(totalBayar)}</span></div>`;
+
+      finalWhatsAppText += `----------------------------\n`;
+      if (serviceFee > 0) finalWhatsAppText += `Service: ${fRp(serviceFee)}\n`;
+      if (taxFee > 0) finalWhatsAppText += `Tax: ${fRp(taxFee)}\n`;
+      finalWhatsAppText += `*TOTAL: ${fRp(totalBayar)}*`;
+
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('resultContent').innerHTML = resultHTML;
+      document.getElementById('btnCopy').style.display = 'block';
+      document.getElementById('btnWa').style.display = 'block';
+
+      // Scroll to result
+      document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // Copy
+    function copyText() {
+      navigator.clipboard.writeText(finalWhatsAppText).then(() => {
+        showToast("Bill Copied! 🥂");
+      }).catch(() => {
+        // Fallback
+        const ta = document.createElement("textarea");
+        ta.value = finalWhatsAppText;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        showToast("Bill Copied! 🥂");
+      });
+    }
+
+    // NEW: Direct WhatsApp
+    function sendWhatsApp() {
+      const encoded = encodeURIComponent(finalWhatsAppText);
+      window.open(`https://wa.me/?text=${encoded}`, '_blank');
+    }
+  </script>
+</body>
+</html>
